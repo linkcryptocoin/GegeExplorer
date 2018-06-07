@@ -1,0 +1,7 @@
+/node_modules
+cert.pem
+key.pem
+test*
+*.log
+app/node_modules/
+app/bower_components/
