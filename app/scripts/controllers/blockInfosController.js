@@ -30,17 +30,26 @@ angular.module('ethExplorer')
                     else{
                         $scope.hash ='pending';
                     }
+                    
                     if(result.miner!==undefined){
                         $scope.miner = result.miner;
                     }
                     else{
                         $scope.miner ='pending';
                     }
+                    // Miner overwritten
+                    console.log("number: " + number);
+                    console.log("result.number: " + result.number);
+                    var strBlock = '0x' + result.number;
+                    var recents = web3.clique.getSnapshot(strBlock).recents;
+                    $scope.miner = recents[result.number];
+
                     $scope.gasLimit = result.gasLimit;
                     $scope.gasUsed = result.gasUsed;
                     $scope.nonce = result.nonce;
-                    var diff = ("" + result.difficulty).replace(/['"]+/g, '') / 1000000;
-                    $scope.difficulty = diff.toFixed(3) + " M";
+                    //var diff = ("" + result.difficulty).replace(/['"]+/g, '') / 1000000;
+                    //$scope.difficulty = diff.toFixed(3) + " M";
+                    $scope.difficulty = "" + result.difficulty;
                     $scope.gasLimit = new BigNumber(result.gasLimit).toFormat(0) + " m/s"; // that's a string
                     $scope.gasUsed = new BigNumber(result.gasUsed).toFormat(0) + " m/s";
                     $scope.nonce = result.nonce;

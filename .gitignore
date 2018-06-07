@@ -5,3 +5,8 @@ test*
 *.log
 app/node_modules/
 app/bower_components/
+/bower_components
+.js*
+.tr*
+package-lock.json
+app/package-lock.json
