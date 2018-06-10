@@ -207,9 +207,16 @@ angular.module('ethExplorer')
         function updateBlockList() {
             var currentBlockNumber = web3.eth.blockNumber;
             $scope.blockNumber = currentBlockNumber;
+            $scope.exchRate = parseInt(gege.getExchangeRate());
             $scope.blocks = [];
             for (var i=0; i < 10 && currentBlockNumber - i >= 0; i++) {
-              $scope.blocks.push(web3.eth.getBlock(currentBlockNumber - i));
+              var number = currentBlockNumber - i;   // gegeChain
+              var aBlock = web3.eth.getBlock(number);
+              var strBlock = web3.toHex(number);
+              //var recents = web3.clique.getSnapshot(strBlock).recents;
+              //aBlock.miner = recents[number];
+              $scope.blocks.push(aBlock);
+              //$scope.blocks.push(web3.eth.getBlock(currentBlockNumber - i));
             }
         }
 
@@ -235,8 +242,23 @@ angular.module('filters', []).
     return function (diffi) {
       if (isNaN(diffi)) return diffi;
       //var n = diffi / 1000000000000;
-      var n = diffi / 1000000;
-      return n.toFixed(3) + " M";
+      //var n = diffi / 1000000;
+      //return n.toFixed(3) + " M";
+      var n = 0;
+      var result = "";
+      if (diffi > 1000000) {
+	 n = diffi / 1000000;
+         result = n.toFixed(3) + " M";
+      }
+      else if (diffi > 1000) {
+	 n = diffi / 1000;
+         result = n.toFixed(3) + " K";
+      }
+      else {
+	 n = diffi;
+         result = "" + n;
+      }
+      return result;
     };
   }).
   filter('stylize', function () {

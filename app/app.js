@@ -13,7 +13,7 @@ var APP_PORT 		= "See package.json --> scripts --> start: Perhaps change '8000'"
 
 // this is creating the corrected geth command
 var WL=window.location;
-var geth_command = "geth--rpc --rpcaddr "+ GETH_HOSTNAME + " --rpcport " + GETH_RPCPORT +'\
+var geth_command = "geth --rpc --rpcaddr "+ GETH_HOSTNAME + " --rpcport " + GETH_RPCPORT +'\
  --rpcapi "web3,eth" ' + ' --rpccorsdomain "' + WL.protocol +"//" + WL.host + '"';
 
 ////////////////////////////////////////////////////
@@ -92,12 +92,14 @@ angular.module('ethExplorer', ['ngRoute','ui.bootstrap','filters','ngSanitize'])
             //$locationProvider.html5Mode(true);
     }])
     .run(function($rootScope) {
-        var web3 = require('web3');
+        //var web3 = require('web3');
+        var Web3 = require('web3');
         //var web3url = "http://172.31.83.105:8501"  
         //var web3url = "http://52.204.156.25:8501";
         var  web3url = "https://www.linkgear.net/gegechain/";  
         console.log("The url:" + web3url);
-        web3.setProvider(new web3.providers.HttpProvider(web3url));
+        //web3.setProvider(new web3.providers.HttpProvider(web3url));
+        var web3 = new Web3(new Web3.providers.HttpProvider(web3url));
         // Check the connectivity
         if (web3.isConnected()) 
             console.log("web3.version used by gegeChain: " + web3.version.api);
@@ -110,13 +112,13 @@ angular.module('ethExplorer', ['ngRoute','ui.bootstrap','filters','ngSanitize'])
 
         var gegePOS = web3.eth.contract(contractABI).at(contractAddress);
         
-        $rootScope.web3=web3;
-        $rootScope.gege=gegePOS;
+        $rootScope.web3 = web3;
+        $rootScope.gege = gegePOS;
         // MetaMask injects its own web3 instance in all pages, override it
         // as it might be not compatible with the one used here
-        if (window.web3)
+        //if (window.web3)
             window.web3 = web3;
-        if (window.gege)
+        //if (window.gege)
             window.gege = gegePOS;
 
         function sleepFor( sleepDuration ){
