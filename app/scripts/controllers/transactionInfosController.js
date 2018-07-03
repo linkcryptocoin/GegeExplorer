@@ -15,7 +15,6 @@ angular.module('ethExplorer')
                 getTransactionInfos()
                     .then(function(result){
                         //TODO Refactor this logic, asynchron calls + services....
-                        var number = web3.eth.blockNumber;
 
                     $scope.result = result;
 
@@ -34,7 +33,9 @@ angular.module('ethExplorer')
                     $scope.from = result.from;
                     $scope.gas = result.gas;
                     //$scope.gasPrice = result.gasPrice.c[0] + " WEI";
-                    $scope.gasPrice = web3.fromWei(result.gasPrice, "ether").toFormat(10) + " LKG";
+                    web3call("fromWei", [result.gasPrice], function(result) {
+                       $scope.gasPrice = result.toFormat(10) + " LKG";
+                    });
                     $scope.hash = result.hash;
                     $scope.input = result.input; // that's a string
                     $scope.nonce = result.nonce;
@@ -42,19 +43,26 @@ angular.module('ethExplorer')
                     $scope.transactionIndex = result.transactionIndex;
                     //$scope.ethValue = web3.fromWei(result.value[0], "ether"); Newer method but has ""
                     $scope.ethValue = result.value.c[0] / 10000;
-                    $scope.txprice = web3.fromWei(result.gas * result.gasPrice, "ether") + " LKG";
+                    web3call("fromWei", [result.gas * result.gasPrice], function(result) {
+                    $scope.txprice = result + " LKG";
+                    });
                     if($scope.blockNumber!==undefined){
+                        web3call("eth.blockNumber", function(result) {
+                        var number = result;
                         $scope.conf = number - $scope.blockNumber;
                         if($scope.conf===0){
                             $scope.conf='unconfirmed'; //TODO change color button when unconfirmed... ng-if or ng-class
                         }
+                        }) 
                     }
                         //TODO Refactor this logic, asynchron calls + services....
                     if($scope.blockNumber!==undefined){
-                        var info = web3.eth.getBlock($scope.blockNumber);
+                        web3call("eth.getBlock", [$scope.blockNumber], function(result) {
+                        var info = JSON.parse(result);
                         if(info!==undefined){
                             $scope.time = info.timestamp;
                         }
+                        })
                     }
 
                 });
@@ -71,16 +79,19 @@ angular.module('ethExplorer')
             function getTransactionInfos(){
                 var deferred = $q.defer();
 
-                web3.eth.getTransaction($scope.txId,function(error, result) {
-                    if(!error){
-                        deferred.resolve(result);
-                    }
-                    else{
-                        deferred.reject(error);
-                    }
+                //web3.eth.getTransaction($scope.txId,function(error, result) {
+                //    if(!error){
+                //        deferred.resolve(result);
+                //    }
+                //    else{
+                //        deferred.reject(error);
+                //    }
+                //});
+                //return deferred.promise;
+                web3call("eth.getTransaction", [$scope.txId], function(result) {
+                    deferred.resolved(result);
                 });
                 return deferred.promise;
-
             }
 
 
@@ -88,5 +99,25 @@ angular.module('ethExplorer')
         };
         $scope.init();
         console.log($scope.result);
+// function: String - the name of the method of attribute
+// args[]: arguments
+async function web3call(web3Func, args) {
+   const api_path = "https://lonkgear.net:8091/auth/local/web3call";
+   const res = await fetch(api_path, {
+       method: 'POST',
+       headers: {
+              'Content-Type': 'application/json'
+              },
+       body: JSON.stringify({
+                web3Func,
+                args
+             }),
+            credentials: 'include',
+       });
+
+   const body = await res.json();
+   console.log(body.result);
+   return body.result;
+}
 
     });

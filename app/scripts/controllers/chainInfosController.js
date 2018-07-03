@@ -10,13 +10,16 @@ angular.module('ethExplorer')
 
 	                $scope.result = result;  // just a dummy value, but following Whit's example.
 
-	                $scope.blockNum = web3.eth.blockNumber; // now that was easy
+	                web3call("eth.blockNumber", function(result) { 
+                        // now that was easy
+	                $scope.blockNum = result; // now that was easy
 
 	                if($scope.blockNum!==undefined){
 
 	                	// TODO: put the 2 web3.eth.getBlock into the async function below
 	                	//       easiest to first do with fastInfosCtrl
-	                    var blockNewest = web3.eth.getBlock($scope.blockNum);
+	                    web3call("eth.getBlock", [$scope.blockNum], function(result) {
+	                    var blockNewest = JSON.parse(result);
 
 	                    if(blockNewest!==undefined){
 
@@ -47,63 +50,96 @@ angular.module('ethExplorer')
 
 	                        $scope.secondsSinceBlock1 = blockNewest.timestamp - 1438226773;
 	                        $scope.daysSinceBlock1 = ($scope.secondsSinceBlock1 / 86400).toFixed(2);
+                                }
+                                });
 
 	                        // Average Block Times:
 	                        // TODO: make fully async, put below into 'fastInfosCtrl'
 
-	                        var blockBefore = web3.eth.getBlock($scope.blockNum - 1);
+	                        web3call("eth.getBlock", [$scope.blockNum - 1], function(result) {
+	                        var blockBefore = JSON.parse(result);
 	                        if(blockBefore!==undefined){
 			                    $scope.blocktime = blockNewest.timestamp - blockBefore.timestamp;
 	                        }
 	                        $scope.range1=100;
 	                        range = $scope.range1;
-	                        var blockPast = web3.eth.getBlock(Math.max($scope.blockNum - range,0));
+                                });
+
+	                        web3call("eth.getBlock", [Math.max($scope.blockNum - range,0)], function(result) {
+	                        var blockPast = JSON.parse(result);
 	                        if(blockBefore!==undefined){
 			                    $scope.blocktimeAverage1 = ((blockNewest.timestamp - blockPast.timestamp)/range).toFixed(2);
 	                        }
 	                        $scope.range2=1000;
 	                        range = $scope.range2;
-	                        var blockPast = web3.eth.getBlock(Math.max($scope.blockNum - range,0));
+                                });
+
+	                        web3call("eth.getBlock", [Math.max($scope.blockNum - range,0)], function(result) {
+	                        var blockPast = JSON.parse(result);
 	                        if(blockBefore!==undefined){
 			                    $scope.blocktimeAverage2 = ((blockNewest.timestamp - blockPast.timestamp)/range).toFixed(2);
 	                        }
 	                        $scope.range3=10000;
 	                        range = $scope.range3;
-	                        var blockPast = web3.eth.getBlock(Math.max($scope.blockNum - range,0));
+                                });
+
+	                        web3call("eth.getBlock", [Math.max($scope.blockNum - range,0)], function(result) {
+	                        var blockPast = JSON.parse(result);
 	                        if(blockBefore!==undefined){
 			                    $scope.blocktimeAverage3 = ((blockNewest.timestamp - blockPast.timestamp)/range).toFixed(2);
 	                        }
 	                        $scope.range4=100000;
 	                        range = $scope.range4;
-	                        var blockPast = web3.eth.getBlock(Math.max($scope.blockNum - range,0));
+                                });
+
+	                        web3call("eth.getBlock", [Math.max($scope.blockNum - range,0)], function(result) {
+	                        var blockPast = JSON.parse(result);
 	                        if(blockBefore!==undefined){
 			                    $scope.blocktimeAverage4 = ((blockNewest.timestamp - blockPast.timestamp)/range).toFixed(2);
 	                        }
 
 	                        range = $scope.blockNum;
-	                        var blockPast = web3.eth.getBlock(1);
+                                });
+
+	                        web3call("eth.getBlock", [1], function(result) {
+	                        var blockPast = JSON.parse(result);
 	                        if(blockBefore!==undefined){
 			                    $scope.blocktimeAverageAll = ((blockNewest.timestamp - blockPast.timestamp)/range).toFixed(2);
 	                        }
 
-
+                                });
 	                        //fastAnswers($scope);
 	                        //$scope=BlockExplorerConstants($scope);
 
 	                    }
-	                }
+                        });
 
 	                // Block Explorer Info
 
-	                $scope.isConnected = web3.isConnected();
+	                web3call("isConnected", function(result) {
+	                    $scope.isConnected = result;
+                        });
 	                //$scope.peerCount = web3.net.peerCount;
-	                $scope.versionApi = web3.version.api;
-	                $scope.versionClient = web3.version.client;
-	                $scope.versionNetwork = web3.version.network;
-	                $scope.versionCurrency = web3.version.ethereum; // TODO: change that to currencyname?
+	                web3call("version.api", function(result) {
+	                    $scope.versionApi = result;
+                        }); 
+	                web3call("version.client", function(result) {
+	                    $scope.versionClient = result;
+                        });
+	                web3call("version.network", function(result) {
+	                    $scope.versionNetwork = result;
+                        });
+	                web3call("version.ethereum", function(result) { 
+                        // TODO: change that to currencyname?
+	                      $scope.versionCurrency = result;
+                        });
 
 	                // ready for the future:
-	                try { $scope.versionWhisper = web3.version.whisper; }
+	                try { 
+                           web3call("version.whisper", function(result) {
+                              $scope.versionWhisper = result; 
+                           })
+                        }
 	                catch(err) {$scope.versionWhisper = err.message; }
 
                 });
@@ -117,4 +153,24 @@ angular.module('ethExplorer')
         $scope.init();
         console.log($scope.result);
 
+// function: String - the name of the method of attribute
+// args[]: arguments
+async function web3call(web3Func, args) {
+   const api_path = "https://linkgear.net:8091/auth/local/web3call";
+   const res = await fetch(api_path, {
+       method: 'POST',
+       headers: {
+              'Content-Type': 'application/json'
+              },
+       body: JSON.stringify({
+                web3Func,
+                args
+             }),
+            credentials: 'include',
+       })
+
+   const body = await res.json()
+   console.log(body.result)
+   return body.result;
+}
 });

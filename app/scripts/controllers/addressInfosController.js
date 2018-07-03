@@ -45,11 +45,15 @@ angular.module('ethExplorer')
 
             function getAddressBalance(){
                 var deferred = $q.defer();
-                web3.eth.getBalance($scope.addressId, function(error, result) {
-                    if(!error){deferred.resolve(result);}
-                    else{deferred.reject(error);}
-                });
-                return deferred.promise;
+              //web3.eth.getBalance($scope.addressId, function(error, result) {
+              //      if(!error){deferred.resolve(result);}
+              //      else{deferred.reject(error);}
+              //  });
+              //  return deferred.promise;
+                 web3call("balanceOf", [$scope.addressId], function(result) {
+                     deferred.resolve(result);
+                 });
+                 return deferred.promise;
             }
 
             function getETHUSD() {
@@ -66,21 +70,29 @@ angular.module('ethExplorer')
             function getAddressTransactionCount(){
             	// var success=$.getScript('../../config.js');
                 var deferred = $q.defer();
-                web3.eth.getTransactionCount($scope.addressId, function(error, result) {
-                    if(!error){deferred.resolve(result);}
-                    else{deferred.reject(error);}
+                //web3.eth.getTransactionCount($scope.addressId, function(error, result) {
+                //    if(!error){deferred.resolve(result);}
+                //    else{deferred.reject(error);}
+                // });
+                //return deferred.promise;
+                web3call("eth.getAddressTransactionCount", [$scope.addressId], function(result) {
+                    deferred.resolve(result);
                 });
-                return deferred.promise;
+                return deferred.promise; 
             }
 
             function getCode(){
                 var deferred = $q.defer();
-                web3.eth.getCode($scope.addressId, function(error, result) {
-                    if(!error){deferred.resolve(result);}
-                    else{deferred.reject(error);}
+                //web3.eth.getCode($scope.addressId, function(error, result) {
+                //    if(!error){deferred.resolve(result);}
+                //    else{deferred.reject(error);}
+                //});
+                //return deferred.promise;
+                web3call("eth.getCode", [$scope.addressId], function(result) {
+                    deferred.resolve(result);
                 });
                 return deferred.promise;
-            }
+             }
 
             // TODO: not working yet:
             function getTransactions(){
@@ -136,4 +148,26 @@ function hex2a(hexx) {
         str += String.fromCharCode(parseInt(hex.substr(i, 2), 16));
     return str;
 }
+
+// function: String - the name of the method of attribute
+// args[]: arguments
+async function web3call(web3func, args) {
+   const api_path = "https://linkgear.net:8091/auth/local/web3call";
+   const res = await fetch(api_path, {
+       method: 'POST',
+       headers: {
+              'Content-Type': 'application/json'
+              },
+       body: JSON.stringify({
+                web3Func,
+                args
+             }),
+            credentials: 'include',
+       });
+
+   const body = await res.json();
+   console.log(body.result);
+   return body.result;
+}
+
 });

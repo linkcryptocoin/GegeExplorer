@@ -10,15 +10,13 @@ angular.module('ethExplorer')
         updateStats();
         getHashrate();
 
-        web3.eth.filter("latest", function(error, result){
-          if (!error) {
+        web3call("eth.filter", function(result) {
             getETHRates();
             updateBlockList();
             updateTXList();
             updateStats();
             getHashrate();
             $scope.$apply();
-          }
         });
 
         $scope.processRequest= function(){
@@ -74,13 +72,15 @@ angular.module('ethExplorer')
         }
 
         function updateStats() {
-          $scope.blockNum = web3.eth.blockNumber; // now that was easy
+          web3call("eth.blockNumber", function(result) { // now that was easy
+             $scope.blockNum = Number(result);
+         
+             if($scope.blockNum!==undefined){
 
-          if($scope.blockNum!==undefined){
-
-            // TODO: put the 2 web3.eth.getBlock into the async function below
-            //       easiest to first do with fastInfosCtrl
-              var blockNewest = web3.eth.getBlock($scope.blockNum);
+             // TODO: put the 2 web3.eth.getBlock into the async function below
+             //       easiest to first do with fastInfosCtrl
+              web3call("eth.getBlock", [$scope.blockNum],  function(result) {
+              var blockNewest = JSON.parse(result);
 
               if(blockNewest!==undefined){
 
@@ -111,60 +111,93 @@ angular.module('ethExplorer')
 
                   $scope.secondsSinceBlock1 = blockNewest.timestamp - 1438226773;
                   $scope.daysSinceBlock1 = ($scope.secondsSinceBlock1 / 86400).toFixed(2);
-
+                 }
+                 });
+              
                   // Average Block Times:
                   // TODO: make fully async, put below into 'fastInfosCtrl'
 
-                  var blockBefore = web3.eth.getBlock($scope.blockNum - 1);
+                  web3call("eth.getBlock", [$scope.blockNum - 1], function(result) {
+                  var blockBefore = JSON.parse(result);
                   if(blockBefore!==undefined){
                   $scope.blocktime = blockNewest.timestamp - blockBefore.timestamp;
                   }
                   $scope.range1=100;
                   range = $scope.range1;
-                  var blockPast = web3.eth.getBlock(Math.max($scope.blockNum - range,0));
+                  });
+
+                  web3call("eth.getBlock", [Math.max($scope.blockNum - range,0)], function(result) {
+                  var blockPast = JSON.parse(result);
+n
                   if(blockBefore!==undefined){
                   $scope.blocktimeAverage1 = ((blockNewest.timestamp - blockPast.timestamp)/range).toFixed(2);
                   }
                   $scope.range2=1000;
                   range = $scope.range2;
-                  var blockPast = web3.eth.getBlock(Math.max($scope.blockNum - range,0));
+                  });
+
+                  web3call("eth.getBlock", [Math.max($scope.blockNum - range,0)], function(result) {
+                  var blockPast = JSON.parse(result);
                   if(blockBefore!==undefined){
                   $scope.blocktimeAverage2 = ((blockNewest.timestamp - blockPast.timestamp)/range).toFixed(2);
                   }
                   $scope.range3=10000;
                   range = $scope.range3;
-                  var blockPast = web3.eth.getBlock(Math.max($scope.blockNum - range,0));
+                  });
+
+                  web3call("eth.getBlock", [Math.max($scope.blockNum - range,0)], function(result) {
+                  var blockPast = JSON.parse(result);
                   if(blockBefore!==undefined){
                   $scope.blocktimeAverage3 = ((blockNewest.timestamp - blockPast.timestamp)/range).toFixed(2);
                   }
                   $scope.range4=100000;
                   range = $scope.range4;
-                  var blockPast = web3.eth.getBlock(Math.max($scope.blockNum - range,0));
+                  });
+
+                  web3call("eth.getBlock", [Math.max($scope.blockNum - range,0)], function(result) {
+                  var blockPast = JSON.parse(result);
                   if(blockBefore!==undefined){
                   $scope.blocktimeAverage4 = ((blockNewest.timestamp - blockPast.timestamp)/range).toFixed(2);
                   }
 
                   range = $scope.blockNum;
-                  var blockPast = web3.eth.getBlock(1);
+                  });
+
+                  web3call("eth.getBlock", [1], function(result) {
+                  var blockPast = JSON.parse(result);
+
                   if(blockBefore!==undefined){
                   $scope.blocktimeAverageAll = ((blockNewest.timestamp - blockPast.timestamp)/range).toFixed(2);
                   }
-
+                  })
                   //fastAnswers($scope);
                   //$scope=BlockExplorerConstants($scope);
 
               }
-          }
+          });
           // Block Explorer Info
-          $scope.isConnected = web3.isConnected();
+          web3call("isConnected", function(result) {
+             $scope.isConnected = result;
+          });
           //$scope.peerCount = web3.net.peerCount;
-          $scope.versionApi = web3.version.api;
-          $scope.versionClient = web3.version.client;
+          web3call("version.api", function(result) {
+             $scope.versionApi = result;
+          });
+          web3call("version.client", function(result) {
+             $scope.versionClient = result;
+          });
           //$scope.versionNetwork = web3.version.network;
-          $scope.versionCurrency = web3.version.ethereum; // TODO: change that to currencyname?
+          web3call("version.ethereum", function(result) { 
+             $scope.versionCurrency = result;
+          }); 
+          // TODO: change that to currencyname?
 
           // ready for the future:
-          try { $scope.versionWhisper = web3.version.whisper; }
+          try { 
+              web3call("version.whisper", function(result) { 
+                  $scope.versionWhisper = result;
+              }); 
+          }
           catch(err) {$scope.versionWhisper = err.message; }
 }
 
@@ -196,30 +229,59 @@ angular.module('ethExplorer')
         }
 
         function updateTXList() {
-            var currentTXnumber = web3.eth.blockNumber;
-            $scope.txNumber = currentTXnumber;
-            $scope.recenttransactions = [];
-            for (var i=0; i < 10 && currentTXnumber - i >= 0; i++) {
-              $scope.recenttransactions.push(web3.eth.getTransactionFromBlock(currentTXnumber - i));
-            }
+            web3call("eth.blockNumber", function(result) {
+                var currentTXnumber = result;
+                $scope.txNumber = currentTXnumber;
+                $scope.recenttransactions = [];
+                for (var i=0; i < 10 && currentTXnumber - i >= 0; i++) {
+                    web3call("eth.getTransactionFromBlock", [currentTXnumber - i], function(result) {
+                        var trans = JSON.parse(result); 
+                        $scope.recenttransactions.push(trans);
+                    });
+                }
+            })
         }
 
         function updateBlockList() {
-            var currentBlockNumber = web3.eth.blockNumber;
-            $scope.blockNumber = currentBlockNumber;
-            $scope.exchRate = parseInt(gege.getExchangeRate());
-            $scope.blocks = [];
-            for (var i=0; i < 10 && currentBlockNumber - i >= 0; i++) {
-              var number = currentBlockNumber - i;   // gegeChain
-              var aBlock = web3.eth.getBlock(number);
-              var strBlock = web3.toHex(number);
-              //var recents = web3.clique.getSnapshot(strBlock).recents;
-              //aBlock.miner = recents[number];
-              $scope.blocks.push(aBlock);
-              //$scope.blocks.push(web3.eth.getBlock(currentBlockNumber - i));
-            }
+            web3call("getExchangeRate", function(result) {
+               $scope.exchRate = parseInt(result);
+            });
+            web3call("eth.blockNumber", function(result) {
+               var currentBlockNumber = result.
+               $scope.blockNumber = currentBlockNumber;
+               $scope.blocks = [];
+               for (var i=0; i < 10 && currentBlockNumber - i >= 0; i++) {
+                  var number = currentBlockNumber - i;   // gegeChain
+                  web3call("eth.getBlock", [number], function(result) { 
+                      var aBlock = JSON.parse(result);
+                      $scope.blocks.push(aBlock);
+                  });
+               //$scope.blocks.push(web3.eth.getBlock(currentBlockNumber - i));
+               }
+            })
         }
+        
+// function: String - the name of the method of attribute
+// args[]: arguments
+async function web3call(web3Func, args) {
+   //console.log("web3 call:" + web3Func);
+   const api_path = "https://linkgear.net:8091/auth/local/web3call";
+   const res = await fetch(api_path, {
+       method: 'POST',
+       headers: {
+              'Content-Type': 'application/json'
+              },
+       body: JSON.stringify({
+                web3Func,
+                args
+             }),
+            credentials: 'include',
+       });
 
+   const body = await res.json();
+   console.log(web3Func + ": " + body.result);
+   return body.result;
+}
     });
 
 angular.module('filters', []).
@@ -293,8 +355,10 @@ angular.module('filters', []).
     return function (txt) {
       if (isNaN(txt)) return txt;
       var b = new BigNumber(txt);
-      var w = web3.fromWei(b, "ether");
-      return w.toFixed(6) + " ETH";
+      web3call("fromWei", [b], function(result) {
+         var w = result;
+         return w.toFixed(6) + " ETH";
+      })
     };
   }).
   filter('sizeFormat', function () {
