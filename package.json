@@ -1,26 +1,26 @@
 {
-  "name": "GegeExplorerV1.0",
+  "name": "GegeExplorer",
   "private": false,
   "version": "0.1.0",
-  "description": "A lightweight GegeChain block explorer",
-  "repository": "https://github.com/carsenk/explorer",
+  "description": "A lightweight gegeChain block explorer",
+  "repository": "https://github.com/linkcryptocoin/GegeExplorer",
   "license": "MIT",
   "devDependencies": {
     "bower": "^1.8.2",
-    "http-server": "^0.11.1",
+    "http-server": "^0.6.1",
     "jasmine-core": "^2.3.4",
-    "karma": "^2.0.3",
+    "karma": "~0.12",
     "karma-chrome-launcher": "^0.1.12",
     "karma-firefox-launcher": "^0.1.6",
     "karma-jasmine": "^0.3.5",
     "karma-junit-reporter": "^0.2.2",
-    "protractor": "^5.3.2",
+    "protractor": "^2.1.0",
     "shelljs": "^0.2.6"
   },
   "scripts": {
     "postinstall": "bower install",
     "prestart": "npm install",
-    "start": "http-server --cors='*' ./app -a 127.0.0.1 -p 9000 -c-1",
+    "start": "http-server ./app -a localhost -p 9000 -c-1",
     "pretest": "npm install",
     "test": "karma start karma.conf.js",
     "test-single-run": "karma start karma.conf.js  --single-run",
@@ -33,6 +33,6 @@
   "dependencies": {
     "angular-chart.js": "^1.0.0-alpha8",
     "chart.js": "^2.1.6",
-    "crypto-socket": "^3.0.2"
+    "crypto-socket": "^1.0.2"
   }
 }
