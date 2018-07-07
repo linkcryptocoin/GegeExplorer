@@ -1,7 +1,7 @@
 var BigNumber = require('bignumber.js');
 
 angular.module('ethExplorer')
-    .controller('chainInfosCtrl', function ($rootScope, $scope, $location, $routeParams, $q) {
+    .controller('chainInfosCtrl', function ($rootScope, $scope, $location, $routeParams) {
 
         $scope.init=function()
         {
@@ -25,7 +25,7 @@ angular.module('ethExplorer')
                  $scope.totalDifficulty_formatted = $scope.totalDifficulty; //.toFormat(0);
 
                  // Gas Limit
-                 $scope.gasLimit = new BigNumber(st.gasLimit); //.toFormat(0) + " m/s";
+                 $scope.gasLimit = new BigNumber(st.gasLimit).toFormat(0) + " m/s";
 
                  // Time
                  $scope.time = st.time;
@@ -36,7 +36,7 @@ angular.module('ethExplorer')
 
                  // Average Block Times:
                  // TODO: make fully async, put below into 'fastInfosCtrl'
-                $scope.blocktime = st.blocktime;
+                 $scope.blocktime = st.blocktime;
 
                  $scope.range1 = st.range1;
                  $scope.blocktimeAverage1 = st.blocktimeAverage1;
@@ -61,9 +61,9 @@ angular.module('ethExplorer')
         $scope.init();
         console.log($scope.result);
 
-// function: String - the name of the method of attribute
-// args[]: arguments
-async function web3call(web3Func, args, callBack) {
+ // function: String - the name of the method of attribute
+ // args[]: arguments
+ async function web3call(web3Func, args, callBack) {
    const api_path = "https://linkgear.net:8091/auth/local/web3call";
    const res = await fetch(api_path, {
        method: 'POST',

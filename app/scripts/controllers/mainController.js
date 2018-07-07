@@ -1,7 +1,7 @@
 //var cryptoSocket = require('crypto-socket');
 var BigNumber = require('bignumber.js');
 angular.module('ethExplorer')
-    .controller('mainCtrl', function ($rootScope, $scope, $location) {
+    .controller('mainCtrl', function ($rootScope, $scope, $location, $interval) {
 
         // Display & update block list
         //getETHRates();
@@ -10,18 +10,19 @@ angular.module('ethExplorer')
         updateStats();
         getHashrate();
 
-        web3call("eth.filter", [], function(result) {
+        //web3call("eth.filter", [], function(result) {
+        $interval(function() {
             //getETHRates();
             updateBlockList();
             updateTXList();
             updateStats();
             getHashrate();
             $scope.$apply();
-        });
+        //});
+        }, 1000);   // 1000 ms = 1 second  
 
         $scope.processRequest= function(){
             var requestStr = $scope.ethRequest;
-
 
             if (requestStr!==undefined){
 
@@ -93,7 +94,7 @@ angular.module('ethExplorer')
                  $scope.totalDifficulty_formatted = $scope.totalDifficulty; //.toFormat(0);
 
                  // Gas Limit
-                 $scope.gasLimit = new BigNumber(st.gasLimit); //.toFormat(0) + " m/s";
+                 $scope.gasLimit = new BigNumber(st.gasLimit).toFormat(0) + " m/s";
 
                  // Time
                  $scope.time = st.time;
@@ -166,12 +167,6 @@ angular.module('ethExplorer')
 
             web3call("getBlocks", [], function(result) {
                 $scope.blocks = result;
-                if ($scope.blocks.length > 0) {
-                   $scope.blockNumber = $scope.blocks[0].number;
-                   $scope.blocktime   = $scope.blocks[0].timestamp * 1000;
-                   $scope.gasLimit    = $scope.blocks[0].gasLimit;
-                   $scope.difficulty  = $scope.blocks[0].difficulty;
-                }
             });
         }
         
