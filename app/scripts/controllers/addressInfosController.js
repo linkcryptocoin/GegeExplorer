@@ -151,7 +151,7 @@ function hex2a(hexx) {
 
 // function: String - the name of the method of attribute
 // args[]: arguments
-async function web3call(web3func, args) {
+async function web3call(web3func, args, callBack) {
    const api_path = "https://linkgear.net:8091/auth/local/web3call";
    const res = await fetch(api_path, {
        method: 'POST',
@@ -167,7 +167,7 @@ async function web3call(web3func, args) {
 
    const body = await res.json();
    console.log(body.result);
-   return body.result;
+   callBack(body.result);
 }
 
 });

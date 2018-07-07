@@ -5,157 +5,65 @@ angular.module('ethExplorer')
 
         $scope.init=function()
         {
-            getChainInfos()
-                .then(function(result){
+            web3call("updateStats", [], function(st) {
+                 $scope.blockNumber = st.blockNum;
+                 $scope.blockNum = st.blockNum;
 
-	                $scope.result = result;  // just a dummy value, but following Whit's example.
+                 // difficulty
+                 $scope.difficulty = st.difficulty;
+                 $scope.difficultyToExponential = st.difficultyToExponential;
 
-	                web3call("eth.blockNumber", function(result) { 
-                        // now that was easy
-	                $scope.blockNum = result; // now that was easy
+                 $scope.totalDifficulty = st.totalDifficulty;
+                 $scope.totalDifficultyToExponential = st.totalDifficultyToExponential;
+                 $scope.totalDifficultyDividedByDifficulty = st.totalDifficultyDividedByDifficulty;
+                 $scope.totalDifficultyDividedByDifficulty_formatted = $scope.totalDifficultyDividedByDifficulty; //.toFormat(1);
 
-	                if($scope.blockNum!==undefined){
+                 $scope.AltsheetsCoefficient = st.AltsheetsCoefficient;
+                 $scope.AltsheetsCoefficient_formatted = $scope.AltsheetsCoefficient; //.toFormat(4);
+                // large numbers still printed nicely:
+                 $scope.difficulty_formatted = $scope.difficulty; //.toFormat(0);
+                 $scope.totalDifficulty_formatted = $scope.totalDifficulty; //.toFormat(0);
 
-	                	// TODO: put the 2 web3.eth.getBlock into the async function below
-	                	//       easiest to first do with fastInfosCtrl
-	                    web3call("eth.getBlock", [$scope.blockNum], function(result) {
-	                    var blockNewest = JSON.parse(result);
+                 // Gas Limit
+                 $scope.gasLimit = new BigNumber(st.gasLimit); //.toFormat(0) + " m/s";
 
-	                    if(blockNewest!==undefined){
+                 // Time
+                 $scope.time = st.time;
 
-		                    // difficulty
-		                    $scope.difficulty = blockNewest.difficulty;
-		                    $scope.difficultyToExponential = blockNewest.difficulty.toExponential(3);
+                 $scope.secondsSinceBlock1 = st.secondsSinceBlock1;
+                 $scope.daysSinceBlock1 = st.daysSinceBlock1;
 
-		                    $scope.totalDifficulty = blockNewest.totalDifficulty;
-		                    $scope.totalDifficultyToExponential = blockNewest.totalDifficulty.toExponential(3);
 
-		                    $scope.totalDifficultyDividedByDifficulty = $scope.totalDifficulty.dividedBy($scope.difficulty);
-		                    $scope.totalDifficultyDividedByDifficulty_formatted = $scope.totalDifficultyDividedByDifficulty.toFormat(1);
+                 // Average Block Times:
+                 // TODO: make fully async, put below into 'fastInfosCtrl'
+                $scope.blocktime = st.blocktime;
 
-		                    $scope.AltsheetsCoefficient = $scope.totalDifficultyDividedByDifficulty.dividedBy($scope.blockNum);
-		                    $scope.AltsheetsCoefficient_formatted = $scope.AltsheetsCoefficient.toFormat(4);
+                 $scope.range1 = st.range1;
+                 $scope.blocktimeAverage1 = st.blocktimeAverage1;
+                 $scope.range2 = st.range2;
+                 $scope.blocktimeAverage2 = st.blocktimeAverage2;
+                 $scope.range3 = st.range3;
+                 $scope.blocktimeAverage3 = st.blocktimeAverage3;
+                 $scope.range4 = st.range4;
+                 $scope.blocktimeAverage4 = st.blocktimeAverage4;
 
-		                    // large numbers still printed nicely:
-		                    $scope.difficulty_formatted = $scope.difficulty.toFormat(0);
-		                    $scope.totalDifficulty_formatted = $scope.totalDifficulty.toFormat(0);
+                 $scope.blocktimeAverageAll = st.blocktimeAverageAll;
 
-		                    // Gas Limit
-		                    $scope.gasLimit = new BigNumber(blockNewest.gasLimit).toFormat(0) + " m/s";
+                 // Block Explorer Info
+                 $scope.isConnected = st.isconnected;
+                 $scope.versionApi = st.versionApi;
+                 $scope.versionClient = st.versionClient;
+                 $scope.versionCurrency = st.versionCurrency;
 
-		                    // Time
-	                        var newDate = new Date();
-	                        newDate.setTime(blockNewest.timestamp*1000);
-	                        $scope.time = newDate.toUTCString();
-
-	                        $scope.secondsSinceBlock1 = blockNewest.timestamp - 1438226773;
-	                        $scope.daysSinceBlock1 = ($scope.secondsSinceBlock1 / 86400).toFixed(2);
-                                }
-                                });
-
-	                        // Average Block Times:
-	                        // TODO: make fully async, put below into 'fastInfosCtrl'
-
-	                        web3call("eth.getBlock", [$scope.blockNum - 1], function(result) {
-	                        var blockBefore = JSON.parse(result);
-	                        if(blockBefore!==undefined){
-			                    $scope.blocktime = blockNewest.timestamp - blockBefore.timestamp;
-	                        }
-	                        $scope.range1=100;
-	                        range = $scope.range1;
-                                });
-
-	                        web3call("eth.getBlock", [Math.max($scope.blockNum - range,0)], function(result) {
-	                        var blockPast = JSON.parse(result);
-	                        if(blockBefore!==undefined){
-			                    $scope.blocktimeAverage1 = ((blockNewest.timestamp - blockPast.timestamp)/range).toFixed(2);
-	                        }
-	                        $scope.range2=1000;
-	                        range = $scope.range2;
-                                });
-
-	                        web3call("eth.getBlock", [Math.max($scope.blockNum - range,0)], function(result) {
-	                        var blockPast = JSON.parse(result);
-	                        if(blockBefore!==undefined){
-			                    $scope.blocktimeAverage2 = ((blockNewest.timestamp - blockPast.timestamp)/range).toFixed(2);
-	                        }
-	                        $scope.range3=10000;
-	                        range = $scope.range3;
-                                });
-
-	                        web3call("eth.getBlock", [Math.max($scope.blockNum - range,0)], function(result) {
-	                        var blockPast = JSON.parse(result);
-	                        if(blockBefore!==undefined){
-			                    $scope.blocktimeAverage3 = ((blockNewest.timestamp - blockPast.timestamp)/range).toFixed(2);
-	                        }
-	                        $scope.range4=100000;
-	                        range = $scope.range4;
-                                });
-
-	                        web3call("eth.getBlock", [Math.max($scope.blockNum - range,0)], function(result) {
-	                        var blockPast = JSON.parse(result);
-	                        if(blockBefore!==undefined){
-			                    $scope.blocktimeAverage4 = ((blockNewest.timestamp - blockPast.timestamp)/range).toFixed(2);
-	                        }
-
-	                        range = $scope.blockNum;
-                                });
-
-	                        web3call("eth.getBlock", [1], function(result) {
-	                        var blockPast = JSON.parse(result);
-	                        if(blockBefore!==undefined){
-			                    $scope.blocktimeAverageAll = ((blockNewest.timestamp - blockPast.timestamp)/range).toFixed(2);
-	                        }
-
-                                });
-	                        //fastAnswers($scope);
-	                        //$scope=BlockExplorerConstants($scope);
-
-	                    }
-                        });
-
-	                // Block Explorer Info
-
-	                web3call("isConnected", function(result) {
-	                    $scope.isConnected = result;
-                        });
-	                //$scope.peerCount = web3.net.peerCount;
-	                web3call("version.api", function(result) {
-	                    $scope.versionApi = result;
-                        }); 
-	                web3call("version.client", function(result) {
-	                    $scope.versionClient = result;
-                        });
-	                web3call("version.network", function(result) {
-	                    $scope.versionNetwork = result;
-                        });
-	                web3call("version.ethereum", function(result) { 
-                        // TODO: change that to currencyname?
-	                      $scope.versionCurrency = result;
-                        });
-
-	                // ready for the future:
-	                try { 
-                           web3call("version.whisper", function(result) {
-                              $scope.versionWhisper = result; 
-                           })
-                        }
-	                catch(err) {$scope.versionWhisper = err.message; }
-
-                });
-
-            function getChainInfos(){
-                var deferred = $q.defer();
-                deferred.resolve(0); // dummy value 0, for now. // see blockInfosController.js
-                return deferred.promise;
-            }
+                 $scope.versionWhisper = st.versionWhisper;
+            })  
         };
         $scope.init();
         console.log($scope.result);
 
 // function: String - the name of the method of attribute
 // args[]: arguments
-async function web3call(web3Func, args) {
+async function web3call(web3Func, args, callBack) {
    const api_path = "https://linkgear.net:8091/auth/local/web3call";
    const res = await fetch(api_path, {
        method: 'POST',
@@ -171,6 +79,6 @@ async function web3call(web3Func, args) {
 
    const body = await res.json()
    console.log(body.result)
-   return body.result;
+   callBack(body.result);
 }
 });
